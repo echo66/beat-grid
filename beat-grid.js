@@ -2,10 +2,7 @@
 
 class BeatGrid {
 	
-	constructor(audioBuffer, beatsTimes) {
-		// if (audioBuffer === undefined)  {
-		// 	throw new Error("Required parameter: audioBuffer");
-		// }
+	constructor(beatsTimes) {
 		this._audioBuffer = audioBuffer;
 		this._beatsArray = [];
 		const that = this;
@@ -86,60 +83,60 @@ class BeatGrid {
 		}
 	}
 
-	seconds(beat) {
-		if (isNaN(beat) || beat===undefined || beat===null) 
-			throw new Error("Invalid parameter: beat");
+	seconds(beats) {
+		if (isNaN(beats) || beats===undefined || beats===null) 
+			throw new Error("Invalid parameter: beats");
 
 		if (this._beatsArray.length <= 1) {
 			throw new Error("You can't estimate time in seconds with none or just one beat. You need two or more beat markers.");
 		}
 
-		if (beat >= this._beatsArray.length) {
+		if (beats >= this._beatsArray.length) {
 			const pIdx = this._beatsArray.length - 2;
 			const nIdx = this._beatsArray.length - 1;
 			const previous = this._beatsArray[pIdx];
 			const next = this._beatsArray[nIdx];
 			const duration = (next.time - previous.time);
-			const coef = (beat - pIdx);
+			const coef = (beats - pIdx);
 
 			return next.time + coef * duration;
 		}
 
-		if (beat < 0) {
+		if (beats < 0) {
 			const pIdx = 0;
 			const nIdx = 1;
 			const previous = this._beatsArray[pIdx];
 			const next = this._beatsArray[nIdx];
 			const duration = (next.time - previous.time);
-			const coef = (beat - pIdx);
+			const coef = (beats - pIdx);
 
 			return previous.time + coef * duration;
 		}
 		
-		const pIdx = Math.floor(beat);
-		const nIdx = Math.ceil(beat);
+		const pIdx = Math.floor(beats);
+		const nIdx = Math.ceil(beats);
 
 		if (pIdx === nIdx) 
-			return this._beatsArray[beat].time;
+			return this._beatsArray[beats].time;
 		else {
 			const previous = this._beatsArray[pIdx];
 			const next = this._beatsArray[nIdx];
 
 			if (previous && next) {
 				const duration = next.time - previous.time;
-				const coef = beat - pIdx;
+				const coef = beats - pIdx;
 				return previous.time + coef * duration;
 			} else if (previous) {
 				const pprevious = this._beatsArray[pIdx-1];
-				return previous.time + (previous.time - pprevious.time) * (beat - pIdx);
+				return previous.time + (previous.time - pprevious.time) * (beats - pIdx);
 			} else {
 				const nnext = this._beatsArray[nIdx+1];
-				return next.time - (nnext.time - next.time) * (nIdx - beat);
+				return next.time - (nnext.time - next.time) * (nIdx - beats);
 			}
 		}
 	}
 
-	bpm_at_beat(beat) {
+	tempo_at_beat(beat) {
 
 		if (this._beatsArray.length <= 1) {
 			throw new Error("You need at least two beats to estimate the tempo.");
@@ -173,7 +170,7 @@ class BeatGrid {
 
 	}
 
-	bpm_at_seconds(seconds) {
+	tempo_at_seconds(seconds) {
 
 		if (this._beatsArray.length <= 1) {
 			throw new Error("You need at least two beats to estimate the tempo.");
@@ -209,7 +206,7 @@ class BeatGrid {
 	}
 
 
-	extract_audio_buffer(audioCtx, startBeat, endBeat) {
+	extract_audio_buffer(audioCtx, audioBuffer, startBeat, endBeat) {
 		const t0 = Math.round(this.seconds(startBeat) * this._audioBuffer.sampleRate);
 		const t1 = Math.round(this.seconds(endBeat) * this._audioBuffer.sampleRate);
 		const length = t1-t0;
